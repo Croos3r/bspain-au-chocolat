@@ -12,6 +12,7 @@ jobs:
     name: Check repository cleanliness
     steps:
       - uses: actions/checkout@v3
+      - run: ls -al
       - run: 'find . \( -name "#*#" -o -name "*-" -o -name "*pain_au_cholat*" 
       -o -name "*.o" -o -name "*.a" -o -name "*.so" -o -name "*.gcda" 
       -o -name "*.gcno" -o -name "*.gcov" 
