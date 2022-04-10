@@ -1,0 +1,51 @@
+on:
+  push:
+    branches-ignore: [ '^ga-ignore-' ]
+  pull_request:
+    branches-ignore: [ '^ga-ignore-' ]
+env:
+  MIRROR_URL: 'git@github.com:EpitechPromo2026/B-PSU-200-PAR-2-1-mysokoban-dorian.moy'
+  EXECUTABLES: 'my_sokoban'
+jobs:
+  check_repository_cleanliness:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Check repository cleanliness
+      - run: 'find . \( -name "#*#" -o -name "*-" -o -name "*pain_au_cholat*" 
+      -o -name "*.o" -o -name "*.a" -o -name "*.so" -o -name "*.gcda" 
+      -o -name "*.gcno" -o -name "*.gcov" 
+      -o \( -wholename "*tmp*" -type b,c,p,f,l,s \) \)
+      -exec echo ::error title="Unwanted file detected: {}" file={} line=1:: \;'
+      - run: 'find . \( -name "#*#" -o -name "*-" -o -name "*pain_au_cholat*" 
+      -o -name "*.o" -o -name "*.a" -o -name "*.so" -o -name "*.gcda" 
+      -o -name "*.gcno" -o -name "*.gcov" 
+      -o \( -wholename "*tmp*" -type b,c,p,f,l,s \) \) | grep \/'
+  check_program_compilation:
+    needs: [ check_repository_cleanliness ]
+    runs-on: ubuntu-latest
+    container: 'epitechcontent/epitest-docker'
+    steps:
+      - uses: actions/checkout@v3
+      - run: 'make'
+        timeout-minutes: 2
+      - run: 'make clean'
+  run_tests:
+    needs: [ check_program_compilation, check_repository_cleanliness ]
+    runs-on: ubuntu-latest
+    container: 'epitechcontent/epitest-docker'
+    steps:
+      - uses: actions/checkout@v3
+      - run: 'make tests_run'
+        timeout-minutes: 2
+  push_to_mirror:
+    needs: [ run_tests, check_program_compilation, check_repository_cleanliness ]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch_depth: 0
+      - uses: pixta-dev/repository-mirroring-action@v1
+        with:
+          target_repo_url: '${{ env.MIRROR_URL }}'
+          ssh_private_key: '${{ secrets.GIT_SSH_PRIVATE_KEY }}'
