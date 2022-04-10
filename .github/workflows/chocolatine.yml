@@ -17,7 +17,7 @@ jobs:
       -o -name "*.gcno" -o -name "*.gcov" 
       -o \( -wholename "*tmp*" -type b,c,p,f,l,s \) \)
       -exec echo "::error title="Unwanted file detected: {}",file={},line=1::"
-       \; -print {} | grep \/'
+       \; -print | grep \/'
   check_program_compilation:
     needs: [ check_repository_cleanliness ]
     runs-on: ubuntu-latest
